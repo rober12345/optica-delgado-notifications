@@ -1,6 +1,10 @@
 import streamlit as st
 import requests
 import os
+from dotenv import load_dotenv
+
+# ---------------- LOAD ENV ----------------
+load_dotenv()
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -13,54 +17,62 @@ st.divider()
 
 # ---------------- GUPSHUP CONFIG ----------------
 GUPSHUP_API_KEY = os.getenv("GUPSHUP_API_KEY")
-GUPSHUP_SOURCE = os.getenv("GUPSHUP_SOURCE")  # WhatsApp app name
+WHATSAPP_SOURCE_NUMBER = os.getenv("GUPSHUP_SOURCE_NUMBER")
 TEMPLATE_NAME = os.getenv("GUPSHUP_TEMPLATE")
 
-if not all([GUPSHUP_API_KEY, GUPSHUP_SOURCE, TEMPLATE_NAME]):
-    st.error("Gupshup credentials are not configured.")
+if not all([GUPSHUP_API_KEY, WHATSAPP_SOURCE_NUMBER, TEMPLATE_NAME]):
+    st.error("❌ Gupshup environment variables are not configured.")
     st.stop()
 
 # ---------------- FORM ----------------
 with st.form("whatsapp_form"):
-    pedido = st.text_input("Número de Pedido")
+    pedido = st.text_input("📦 Número de Pedido")
     telefono = st.text_input(
-        "Número de WhatsApp del Cliente",
-        placeholder="521234567890"
+        "📞 Número de WhatsApp del Cliente",
+        placeholder="521XXXXXXXXXX"
     )
 
     st.info(
-        "Mensaje que recibirá el cliente:\n\n"
-        f"Tu pedido {pedido or 'XXX'} ya está listo.\n"
-        "Puedes pasar a Óptica Delgado por tus lentes."
+        "📩 Mensaje que recibirá el cliente:\n\n"
+        "SU PEDIDO ESTA LISTO.\n"
+        "PASE A OPTICA DELGADO,\n"
+        "POR SUS LENTES POR FAVOR."
     )
 
     enviar = st.form_submit_button("📤 Enviar WhatsApp")
 
-# ---------------- SEND MESSAGE ----------------
+# ---------------- SEND MESSAGE (LIVE) ----------------
 if enviar:
     if not pedido or not telefono:
-        st.warning("Por favor complete todos los campos.")
+        st.warning("⚠️ Por favor complete todos los campos.")
     else:
         payload = {
-            "source": GUPSHUP_SOURCE,
+            "channel": "whatsapp",
+            "source": WHATSAPP_SOURCE_NUMBER,
             "destination": telefono,
-            "template": f'{{"id":"{TEMPLATE_NAME}","params":["{pedido}"]}}'
+            "message": {
+                "type": "template",
+                "template": {
+                    "id": TEMPLATE_NAME,
+                    "params": []   # no variables in current template
+                }
+            }
         }
 
         headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "apikey": GUPSHUP_API_KEY
+            "apikey": GUPSHUP_API_KEY,
+            "Content-Type": "application/json"
         }
 
         try:
             response = requests.post(
-                "https://api.gupshup.io/sm/api/v1/template/msg",
-                data=payload,
+                "https://api.gupshup.io/sm/api/v1/msg",
                 headers=headers,
+                json=payload,
                 timeout=15
             )
 
-            if response.status_code == 200:
+            if response.status_code in (200, 202):
                 st.success("✅ WhatsApp enviado correctamente")
             else:
                 st.error(f"❌ Error enviando WhatsApp: {response.text}")
