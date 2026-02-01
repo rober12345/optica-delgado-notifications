@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import os
 
-
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Óptica Delgado – WhatsApp",
@@ -31,14 +30,14 @@ with st.form("whatsapp_form"):
 
     st.info(
         "📩 Mensaje que recibirá el cliente:\n\n"
-        "SU PEDIDO ESTA LISTO.\n"
-        "PASE A OPTICA DELGADO,\n"
-        "POR SUS LENTES POR FAVOR."
+        "Hola, espero te encuentres muy bien al recibir este mensaje.\n\n"
+        f"Tu pedido {pedido or 'XXXX'} ya está listo.\n\n"
+        "Por favor, puedes pasar a Óptica Delgado por tus lentes."
     )
 
     enviar = st.form_submit_button("📤 Enviar WhatsApp")
 
-# ---------------- SEND MESSAGE (LIVE) ----------------
+# ---------------- SEND MESSAGE ----------------
 if enviar:
     if not pedido or not telefono:
         st.warning("⚠️ Por favor complete todos los campos.")
@@ -51,7 +50,7 @@ if enviar:
                 "type": "template",
                 "template": {
                     "id": TEMPLATE_NAME,
-                    "params": []   # no variables in current template
+                    "params": [pedido]
                 }
             }
         }
@@ -76,4 +75,3 @@ if enviar:
 
         except Exception as e:
             st.error(f"🌐 Error de red: {e}")
-
