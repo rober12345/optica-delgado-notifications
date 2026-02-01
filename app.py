@@ -1,10 +1,7 @@
 import streamlit as st
 import requests
 import os
-from dotenv import load_dotenv
 
-# ---------------- LOAD ENV ----------------
-load_dotenv()
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -79,3 +76,4 @@ if enviar:
 
         except Exception as e:
             st.error(f"🌐 Error de red: {e}")
+
