@@ -11,17 +11,17 @@ st.set_page_config(
 st.title("📲 Óptica Delgado – Pedido Listo")
 st.divider()
 
-# ---------------- ENV VARIABLES ----------------
+# ---------------- GUPSHUP CONFIG ----------------
 GUPSHUP_API_KEY = os.getenv("GUPSHUP_API_KEY")
 GUPSHUP_SOURCE_NUMBER = os.getenv("GUPSHUP_SOURCE_NUMBER")
 GUPSHUP_TEMPLATE = os.getenv("GUPSHUP_TEMPLATE")
 
-if not GUPSHUP_API_KEY or not GUPSHUP_SOURCE_NUMBER or not GUPSHUP_TEMPLATE:
+if not all([GUPSHUP_API_KEY, GUPSHUP_SOURCE_NUMBER, GUPSHUP_TEMPLATE]):
     st.error("❌ Gupshup environment variables are not configured.")
     st.stop()
 
 # ---------------- FORM ----------------
-with st.form("send_whatsapp"):
+with st.form("whatsapp_form"):
     pedido = st.text_input("📦 Número de Pedido")
     telefono = st.text_input(
         "📞 Número de WhatsApp del Cliente",
@@ -32,13 +32,12 @@ with st.form("send_whatsapp"):
         "📩 Mensaje que recibirá el cliente:\n\n"
         "Hola, espero te encuentres muy bien al recibir este mensaje.\n\n"
         f"Tu pedido {pedido or 'XXXX'} ya está listo.\n\n"
-        "Por favor, puedes pasar a Óptica Delgado por tus lentes.\n\n"
-        "Gracias!"
+        "Por favor, puedes pasar a Óptica Delgado por tus lentes."
     )
 
     enviar = st.form_submit_button("📤 Enviar WhatsApp")
 
-# ---------------- SEND MESSAGE ----------------
+# ---------------- SEND MESSAGE (ACP TEMPLATE API) ----------------
 if enviar:
     if not pedido or not telefono:
         st.warning("⚠️ Por favor complete todos los campos.")
@@ -57,8 +56,8 @@ if enviar:
         try:
             response = requests.post(
                 "https://api.gupshup.io/sm/api/v1/template/msg",
-                headers=headers,
                 data=payload,
+                headers=headers,
                 timeout=15
             )
 
