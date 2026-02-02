@@ -21,7 +21,7 @@ GUPSHUP_SOURCE_NUMBER = os.getenv("GUPSHUP_SOURCE_NUMBER")
 GUPSHUP_TEMPLATE = os.getenv("GUPSHUP_TEMPLATE")
 
 if not all([GUPSHUP_API_KEY, GUPSHUP_SOURCE_NUMBER, GUPSHUP_TEMPLATE]):
-    st.error("❌ Gupshup environment variables are not configured. Please check your .env file.")
+    st.error("❌ Gupshup environment variables are not configured. Please check your .env file or Streamlit Secrets.")
     st.stop()
 
 # ---------------- FORM ----------------
@@ -40,7 +40,6 @@ with st.form("whatsapp_form"):
     )
 
     enviar = st.form_submit_button("📤 Enviar WhatsApp")
-    test_msg = st.form_submit_button("🧪 Enviar Mensaje de Prueba")
 
 # ---------------- FUNCTION TO SEND MESSAGE ----------------
 def send_whatsapp(destination, pedido_text):
@@ -75,11 +74,3 @@ if enviar:
         st.warning("⚠️ Por favor complete todos los campos.")
     else:
         send_whatsapp(telefono, pedido)
-
-if test_msg:
-    test_number = st.text_input("📞 Número de prueba", placeholder="521XXXXXXXXXX")
-    if not test_number:
-        st.warning("⚠️ Ingresa tu número de prueba para enviar el mensaje.")
-    else:
-        send_whatsapp(test_number, "TEST123")
-        st.info("💡 Mensaje de prueba enviado con pedido TEST123")
