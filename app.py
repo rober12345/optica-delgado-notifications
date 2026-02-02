@@ -62,7 +62,7 @@ if enviar:
 
         try:
             response = requests.post(
-                "https://api.gupshup.io/sm/api/v1/msg",
+                "https://api.gupshup.io/wa/api/v1/template/msg",
                 headers=headers,
                 json=payload,
                 timeout=15
