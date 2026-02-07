@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 # ---------------- LOAD ENV ----------------
-load_dotenv()  # ✅ Load environment variables from .env
+load_dotenv()
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -19,18 +19,16 @@ st.divider()
 GUPSHUP_API_KEY = os.getenv("GUPSHUP_API_KEY")
 GUPSHUP_SOURCE_NUMBER = os.getenv("GUPSHUP_SOURCE_NUMBER")
 GUPSHUP_TEMPLATE = os.getenv("GUPSHUP_TEMPLATE")
+GUPSHUP_APP_NAME = os.getenv("GUPSHUP_APP_NAME")
 
-if not all([GUPSHUP_API_KEY, GUPSHUP_SOURCE_NUMBER, GUPSHUP_TEMPLATE]):
-    st.error("❌ Gupshup environment variables are not configured. Please check your .env file or Streamlit Secrets.")
+if not all([GUPSHUP_API_KEY, GUPSHUP_SOURCE_NUMBER, GUPSHUP_TEMPLATE, GUPSHUP_APP_NAME]):
+    st.error("❌ Missing Gupshup environment variables. Check your .env file.")
     st.stop()
 
 # ---------------- FORM ----------------
 with st.form("whatsapp_form"):
     pedido = st.text_input("📦 Número de Pedido")
-    telefono = st.text_input(
-        "📞 Número de WhatsApp del Cliente",
-        placeholder="521XXXXXXXXXX"
-    )
+    telefono = st.text_input("📞 Número de WhatsApp del Cliente", placeholder="521XXXXXXXXXX")
 
     st.info(
         "📩 Mensaje que recibirá el cliente:\n\n"
@@ -41,11 +39,14 @@ with st.form("whatsapp_form"):
 
     enviar = st.form_submit_button("📤 Enviar WhatsApp")
 
-# ---------------- FUNCTION TO SEND MESSAGE ----------------
+# ---------------- FUNCTION ----------------
 def send_whatsapp(destination, pedido_text):
+
     payload = {
+        "channel": "whatsapp",
         "source": GUPSHUP_SOURCE_NUMBER,
         "destination": destination,
+        "src.name": GUPSHUP_APP_NAME,
         "template": f'{{"id":"{GUPSHUP_TEMPLATE}","params":["{pedido_text}"]}}'
     }
 
@@ -56,17 +57,19 @@ def send_whatsapp(destination, pedido_text):
 
     try:
         response = requests.post(
-            "https://api.gupshup.io/sm/api/v1/template/msg",
+            "https://api.gupshup.io/wa/api/v1/template/msg",
             data=payload,
             headers=headers,
             timeout=15
         )
+
         if response.status_code in (200, 202):
             st.success("✅ WhatsApp enviado correctamente")
         else:
             st.error(f"❌ Error enviando WhatsApp: {response.status_code} | {response.text}")
+
     except requests.exceptions.RequestException as e:
-        st.error(f"🌐 Error de red: {e}")
+        st.error(f"🌐 Network error: {e}")
 
 # ---------------- SEND LOGIC ----------------
 if enviar:
